@@ -105,7 +105,25 @@ def obtener_paro_mensual():
 # ================================
 
 st.sidebar.title("🎯 Filtros")
-rango = st.sidebar.slider("Rango de años", 2015, 2025, (2018, 2024))
+
+# Obtener todas las fechas disponibles
+fechas_combinadas = pd.concat([
+    obtener_pib_trimestral()["Fecha"],
+    obtener_ipc_mensual()["Fecha"],
+    obtener_paro_mensual()["Fecha"]
+])
+
+min_year = fechas_combinadas.dt.year.min()
+max_year = fechas_combinadas.dt.year.max()
+
+# Filtro dinámico
+rango = st.sidebar.slider(
+    "Rango de años", 
+    min_year, 
+    max_year, 
+    (max(max_year - 5, min_year), max_year)
+)
+
 
 # ================================
 # 📊 Visualización
