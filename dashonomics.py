@@ -129,7 +129,7 @@ def mostrar_reloj_riesgo(valor):
         title={'text': "Índice de Riesgo Económico"},
         gauge={
             'axis': {'range': [0, 100]},
-            'bar': {'color': "darkred"},
+            'bar': {'color': "black", 'thickness': 0.3},  # Aguja negra y más fina
             'steps': [
                 {'range': [0, 30], 'color': "green"},
                 {'range': [30, 70], 'color': "orange"},
@@ -139,6 +139,7 @@ def mostrar_reloj_riesgo(valor):
     ))
     fig.update_layout(height=300, margin=dict(t=30, b=0))
     st.plotly_chart(fig, use_container_width=True)
+
 
 # ================================
 # ⏰ Mostrar Reloj de Crisis
