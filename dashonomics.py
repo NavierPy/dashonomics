@@ -1,8 +1,9 @@
-import streamlit as st
+from datetime import datetime
 import pandas as pd
 import requests
+import streamlit as st
 import plotly.express as px
-from datetime import datetime
+import plotly.graph_objects as go
 
 st.set_page_config(page_title="Dashonomics", layout="wide")
 st.title("📊 Dashonomics")
@@ -14,15 +15,12 @@ st.markdown("Indicadores económicos clave de España. Datos en tiempo real desd
 
 def convertir_fecha_mensual(fecha_str):
     try:
-        # Formato habitual: 2024M03
         return datetime.strptime(fecha_str, "%YM%m")
     except ValueError:
         try:
-            # Formato alternativo: 2024-03
             return datetime.strptime(fecha_str, "%Y-%m")
         except ValueError:
-            return None  # O raise, si prefieres
-
+            return None
 
 def convertir_fecha_trimestral(fecha_str):
     año, trimestre = fecha_str.split("-Q")
@@ -36,12 +34,7 @@ def convertir_fecha_trimestral(fecha_str):
 @st.cache_data
 def obtener_pib_trimestral():
     url = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/namq_10_pc"
-    params = {
-        "geo": "ES",
-        "unit": "CP_EUR_HAB",
-        "na_item": "B1GQ",
-        "format": "JSON"
-    }
+    params = {"geo": "ES", "unit": "CP_EUR_HAB", "na_item": "B1GQ", "format": "JSON"}
     response = requests.get(url, params=params)
     data = response.json()
     time_labels = {v: k for k, v in data['dimension']['time']['category']['index'].items()}
@@ -58,12 +51,7 @@ def obtener_pib_trimestral():
 @st.cache_data
 def obtener_ipc_mensual():
     url = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_midx"
-    params = {
-        "geo": "ES",
-        "coicop": "CP00",
-        "unit": "I15",
-        "format": "JSON"
-    }
+    params = {"geo": "ES", "coicop": "CP00", "unit": "I15", "format": "JSON"}
     response = requests.get(url, params=params)
     data = response.json()
     time_labels = {v: k for k, v in data['dimension']['time']['category']['index'].items()}
@@ -80,13 +68,7 @@ def obtener_ipc_mensual():
 @st.cache_data
 def obtener_paro_mensual():
     url = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/une_rt_m"
-    params = {
-        "geo": "ES",
-        "sex": "T",
-        "age": "TOTAL",
-        "unit": "PC_ACT",
-        "format": "JSON"
-    }
+    params = {"geo": "ES", "sex": "T", "age": "TOTAL", "unit": "PC_ACT", "format": "JSON"}
     response = requests.get(url, params=params)
     data = response.json()
     time_labels = {v: k for k, v in data['dimension']['time']['category']['index'].items()}
@@ -101,37 +83,100 @@ def obtener_paro_mensual():
     return df.sort_values("Fecha")
 
 # ================================
-# 🎛️ Filtros
+# ⚠️ Índice de Riesgo Económico
 # ================================
 
-st.sidebar.title("🎯 Filtros")
+@st.cache_data
+def calcular_indice_riesgo():
+    df_pib = obtener_pib_trimestral()
+    df_paro = obtener_paro_mensual()
+    df_ipc = obtener_ipc_mensual()
 
-# Obtener todas las fechas disponibles
+    riesgo = 0
+    motivos = []
+
+    if len(df_pib) >= 2:
+        pib_actual = df_pib.iloc[-1]["Valor"]
+        pib_anterior = df_pib.iloc[-2]["Valor"]
+        if pib_actual < pib_anterior:
+            riesgo += 40
+            motivos.append("📉 El PIB ha caído respecto al trimestre anterior.")
+
+    if len(df_paro) >= 4:
+        paro_actual = df_paro.iloc[-1]["Valor"]
+        paro_pasado = df_paro.iloc[-4]["Valor"]
+        if paro_actual > paro_pasado + 0.5:
+            riesgo += 30
+            motivos.append("📈 El desempleo ha subido significativamente en los últimos 3 meses.")
+
+    if len(df_ipc) >= 2:
+        ipc_actual = df_ipc.iloc[-1]["Valor"]
+        ipc_anterior = df_ipc.iloc[-2]["Valor"]
+        variacion = ipc_actual - ipc_anterior
+        if abs(variacion) > 0.8:
+            riesgo += 30
+            if variacion > 0:
+                motivos.append("🔥 La inflación mensual es muy elevada.")
+            else:
+                motivos.append("🧊 Riesgo de deflación: IPC ha caído bruscamente.")
+
+    return min(riesgo, 100), motivos
+
+def mostrar_reloj_riesgo(valor):
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=valor,
+        title={'text': "Índice de Riesgo Económico"},
+        gauge={
+            'axis': {'range': [0, 100]},
+            'bar': {'color': "darkred"},
+            'steps': [
+                {'range': [0, 30], 'color': "green"},
+                {'range': [30, 70], 'color': "orange"},
+                {'range': [70, 100], 'color': "red"}
+            ],
+        }
+    ))
+    fig.update_layout(height=300, margin=dict(t=30, b=0))
+    st.plotly_chart(fig, use_container_width=True)
+
+# ================================
+# ⏰ Mostrar Reloj de Crisis
+# ================================
+
+st.header("⏰ Reloj de Crisis Económica")
+indice, razones = calcular_indice_riesgo()
+mostrar_reloj_riesgo(indice)
+
+if razones:
+    st.markdown("### ⚠️ Señales detectadas:")
+    for r in razones:
+        st.markdown(f"- {r}")
+else:
+    st.success("Todo en calma. No se detectan señales de alerta económica.")
+
+# ================================
+# 🎛️ Filtros dinámicos
+# ================================
+
 fechas_combinadas = pd.concat([
     obtener_pib_trimestral()["Fecha"],
     obtener_ipc_mensual()["Fecha"],
     obtener_paro_mensual()["Fecha"]
 ])
-
 min_year = fechas_combinadas.dt.year.min()
 max_year = fechas_combinadas.dt.year.max()
 
-# Filtro dinámico
-rango = st.sidebar.slider(
-    "Rango de años", 
-    min_year, 
-    max_year, 
-    (max(max_year - 5, min_year), max_year)
-)
-
+st.sidebar.title("🎯 Filtros")
+rango = st.sidebar.slider("Rango de años", min_year, max_year, (max(max_year - 5, min_year), max_year))
 
 # ================================
-# 📊 Visualización
+# 📊 Visualización de series
 # ================================
 
 def mostrar_serie(nombre, df):
     df_filtrado = df[df['Fecha'].dt.year.between(rango[0], rango[1])]
-    fig = px.line(df_filtrado, x='Fecha', y='Valor', title=nombre, markers=False)
+    fig = px.line(df_filtrado, x='Fecha', y='Valor', title=nombre)
     fig.update_layout(height=350, margin=dict(t=40, b=20))
     st.plotly_chart(fig, use_container_width=True)
 
