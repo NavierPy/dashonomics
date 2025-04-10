@@ -131,7 +131,7 @@ rango = st.sidebar.slider(
 
 def mostrar_serie(nombre, df):
     df_filtrado = df[df['Fecha'].dt.year.between(rango[0], rango[1])]
-    fig = px.line(df_filtrado, x='Fecha', y='Valor', title=nombre, markers=True)
+    fig = px.line(df_filtrado, x='Fecha', y='Valor', title=nombre, markers=False)
     fig.update_layout(height=350, margin=dict(t=40, b=20))
     st.plotly_chart(fig, use_container_width=True)
 
