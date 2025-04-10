@@ -13,7 +13,16 @@ st.markdown("Indicadores económicos clave de España. Datos en tiempo real desd
 # ================================
 
 def convertir_fecha_mensual(fecha_str):
-    return datetime.strptime(fecha_str, "%YM%m")
+    try:
+        # Formato habitual: 2024M03
+        return datetime.strptime(fecha_str, "%YM%m")
+    except ValueError:
+        try:
+            # Formato alternativo: 2024-03
+            return datetime.strptime(fecha_str, "%Y-%m")
+        except ValueError:
+            return None  # O raise, si prefieres
+
 
 def convertir_fecha_trimestral(fecha_str):
     año, trimestre = fecha_str.split("-Q")
