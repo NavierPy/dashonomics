@@ -131,13 +131,13 @@ def mostrar_reloj_riesgo(valor):
         title={'text': "Índice de Riesgo Económico"},
         gauge={
             'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "gray"},
-            'bar': {'color': "black", 'thickness': 0.1},  # Aguja fina y negra
+            'bar': {'color': "black", 'thickness': 0.1},
             'steps': [
-                {'range': [0, 20], 'color': "#27ae60"},     # verde fuerte
-                {'range': [20, 40], 'color': "#58d68d"},    # verde claro
-                {'range': [40, 60], 'color': "#f7dc6f"},    # amarillo
-                {'range': [60, 80], 'color': "#f5b041"},    # naranja
-                {'range': [80, 100], 'color': "#e74c3c"}    # rojo
+                {'range': [0, 20], 'color': "#2dc937"},   # Verde
+                {'range': [20, 40], 'color': "#99c140"}, # Verde lima
+                {'range': [40, 60], 'color': "#e7b416"}, # Amarillo
+                {'range': [60, 80], 'color': "#db7b2b"}, # Naranja
+                {'range': [80, 100], 'color': "#cc3232"} # Rojo
             ]
         },
         number={'font': {'size': 48}}
@@ -145,6 +145,7 @@ def mostrar_reloj_riesgo(valor):
 
     fig.update_layout(height=340, margin=dict(t=20, b=10))
     st.plotly_chart(fig, use_container_width=True)
+
 
 
 # ================================
