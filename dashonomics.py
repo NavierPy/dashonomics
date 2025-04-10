@@ -180,18 +180,18 @@ def mostrar_serie(nombre, df):
     fig.update_layout(height=350, margin=dict(t=40, b=20))
     st.plotly_chart(fig, use_container_width=True)
 
+st.subheader("🛒 IPC (mensual)")
+mostrar_serie("Índice de Precios al Consumo (base 2015)", obtener_ipc_mensual())
+
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("📈 PIB per cápita (trimestral)")
-    mostrar_serie("PIB per cápita [€]", obtener_pib_trimestral())
-
-with col2:
     st.subheader("📉 Tasa de paro (mensual)")
     mostrar_serie("Paro (%)", obtener_paro_mensual())
 
-st.subheader("🛒 IPC (mensual)")
-mostrar_serie("Índice de Precios al Consumo (base 2015)", obtener_ipc_mensual())
+with col2:
+    st.subheader("📈 PIB per cápita (trimestral)")
+    mostrar_serie("PIB per cápita [€]", obtener_pib_trimestral())
 
 st.markdown("---")
 st.caption("📡 Fuente: Eurostat REST API | Datos actualizados automáticamente")
