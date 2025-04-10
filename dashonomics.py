@@ -124,21 +124,24 @@ def calcular_indice_riesgo():
 
 def mostrar_reloj_riesgo(valor):
     fig = go.Figure(go.Indicator(
-        mode="gauge+number",
+        mode="gauge+number+delta",
         value=valor,
         title={'text': "Índice de Riesgo Económico"},
         gauge={
-            'axis': {'range': [0, 100]},
-            'bar': {'color': "black", 'thickness': 0.3},  # Aguja negra y más fina
+            'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "gray"},
+            'bar': {'color': "black", 'thickness': 0.1},
+            'bgcolor': "white",
             'steps': [
-                {'range': [0, 30], 'color': "green"},
-                {'range': [30, 70], 'color': "orange"},
-                {'range': [70, 100], 'color': "red"}
+                {'range': [0, 30], 'color': "#2ecc71"},     # verde
+                {'range': [30, 70], 'color': "#f39c12"},    # naranja
+                {'range': [70, 100], 'color': "#e74c3c"}    # rojo
             ],
-        }
+        },
+        number={'font': {'size': 48}}
     ))
-    fig.update_layout(height=300, margin=dict(t=30, b=0))
+    fig.update_layout(height=340, margin=dict(t=20, b=10))
     st.plotly_chart(fig, use_container_width=True)
+
 
 
 # ================================
