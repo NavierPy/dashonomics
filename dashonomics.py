@@ -123,7 +123,8 @@ def calcular_indice_riesgo():
     return min(riesgo, 100), motivos
 
 # Generamos la nueva función `mostrar_reloj_riesgo_real` para Dashonomics con una aguja realista
-def mostrar_reloj_riesgo_real(valor_riesgo):
+
+def mostrar_reloj_riesgo(valor_riesgo):
     import plotly.graph_objects as go
     import numpy as np
 
