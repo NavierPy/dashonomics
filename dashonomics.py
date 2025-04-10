@@ -122,25 +122,70 @@ def calcular_indice_riesgo():
 
     return min(riesgo, 100), motivos
 
-def mostrar_reloj_riesgo(valor):
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number+delta",
-        value=valor,
-        title={'text': "Índice de Riesgo Económico"},
-        gauge={
-            'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "gray"},
-            'bar': {'color': "black", 'thickness': 0.1},
-            'bgcolor': "white",
-            'steps': [
-                {'range': [0, 30], 'color': "#2ecc71"},     # verde
-                {'range': [30, 70], 'color': "#f39c12"},    # naranja
-                {'range': [70, 100], 'color': "#e74c3c"}    # rojo
-            ],
-        },
-        number={'font': {'size': 48}}
+# Generamos la nueva función `mostrar_reloj_riesgo_real` para Dashonomics con una aguja realista
+def mostrar_reloj_riesgo_real(valor_riesgo):
+    import plotly.graph_objects as go
+    import numpy as np
+
+    # Convertimos el valor a un ángulo (0 = izquierda, 100 = derecha)
+    angulo = 180 * (1 - valor_riesgo / 100)
+    angulo_rad = np.radians(angulo)
+    x_final = 0.5 + 0.4 * np.cos(angulo_rad)
+    y_final = 0.5 + 0.4 * np.sin(angulo_rad)
+
+    fig = go.Figure()
+
+    # Fondo del semicírculo: verde, naranja, rojo
+    fig.add_trace(go.Pie(
+        values=[30, 40, 30, 100],  # El último 100 es transparente
+        rotation=180,
+        hole=0.6,
+        direction="clockwise",
+        marker_colors=["green", "orange", "red", "rgba(0,0,0,0)"],
+        text=["Bajo", "Medio", "Alto", ""],
+        textinfo="label",
+        hoverinfo="skip",
+        showlegend=False
     ))
-    fig.update_layout(height=340, margin=dict(t=20, b=10))
+
+    # Aguja (línea negra)
+    fig.add_shape(
+        type="line",
+        x0=0.5, y0=0.5,
+        x1=x_final, y1=y_final,
+        line=dict(color="black", width=4)
+    )
+
+    # Círculo central
+    fig.add_shape(
+        type="circle",
+        x0=0.48, x1=0.52,
+        y0=0.48, y1=0.52,
+        fillcolor="black",
+        line_color="black"
+    )
+
+    # Valor numérico
+    fig.add_trace(go.Scatter(
+        x=[0.5], y=[0.3],
+        text=[f"{valor_riesgo}"],
+        mode="text",
+        textfont=dict(size=40, color="black"),
+        hoverinfo="skip"
+    ))
+
+    fig.update_layout(
+        margin=dict(t=30, b=30, l=30, r=30),
+        showlegend=False,
+        height=360,
+        paper_bgcolor="white",
+        xaxis=dict(showticklabels=False, range=[0, 1]),
+        yaxis=dict(showticklabels=False, range=[0, 1])
+    )
+
     st.plotly_chart(fig, use_container_width=True)
+
+
 
 
 
